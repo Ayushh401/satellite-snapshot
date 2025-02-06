@@ -35,7 +35,12 @@ export const searchASFGranules = async (params: ASFSearchParams): Promise<ASFGra
       throw new Error('ASF API request failed');
     }
     const data = await response.json();
-    return data.results || [];
+    
+    // Transform the response to include download URLs
+    return (data.results || []).map((result: any) => ({
+      ...result,
+      downloadUrl: `https://datapool.asf.alaska.edu/${result.downloadUrl}`,
+    }));
   } catch (error) {
     console.error('Error fetching ASF data:', error);
     throw error;

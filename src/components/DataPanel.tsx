@@ -1,12 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { searchASFGranules, type ASFGranule } from "@/utils/asfApi";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { loadGeoTIFF, createImageFromGeoTIFF } from "@/utils/geotiffUtils";
+import { useState } from "react";
+import { Button } from "./ui/button";
 
 interface DataPanelProps {
   selectedRegion: string | null;
 }
 
 const DataPanel = ({ selectedRegion }: DataPanelProps) => {
+  const [selectedGranule, setSelectedGranule] = useState<ASFGranule | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const { data: granules, isLoading, error } = useQuery({
     queryKey: ['asfGranules', selectedRegion],
     queryFn: () => searchASFGranules({
@@ -17,6 +23,17 @@ const DataPanel = ({ selectedRegion }: DataPanelProps) => {
     }),
     enabled: !!selectedRegion,
   });
+
+  const handleGranuleSelect = async (granule: ASFGranule) => {
+    setSelectedGranule(granule);
+    try {
+      const tiff = await loadGeoTIFF(granule.downloadUrl);
+      const canvas = await createImageFromGeoTIFF(tiff);
+      setPreviewImage(canvas.toDataURL());
+    } catch (error) {
+      console.error('Error loading GeoTIFF preview:', error);
+    }
+  };
 
   if (!selectedRegion) {
     return (
@@ -51,7 +68,7 @@ const DataPanel = ({ selectedRegion }: DataPanelProps) => {
 
   return (
     <div className="p-6 rounded-lg bg-space-light/20 backdrop-blur-sm animate-fade-in">
-      <h2 className="text-xl font-semibold mb-4">Data for {selectedRegion}</h2>
+      <h2 className="text-xl font-semibold mb-4">Data for Selected Region</h2>
       
       <div className="space-y-4">
         <div className="p-4 bg-white/5 rounded">
@@ -70,11 +87,33 @@ const DataPanel = ({ selectedRegion }: DataPanelProps) => {
 
         <div className="p-4 bg-white/5 rounded">
           <h3 className="font-medium mb-2">Available Granules</h3>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {granules?.slice(0, 5).map((granule) => (
-              <div key={granule.granuleName} className="text-sm text-gray-300">
-                <p>Name: {granule.granuleName}</p>
-                <p>Date: {new Date(granule.acquisitionDate).toLocaleDateString()}</p>
+              <div key={granule.granuleName} className="p-4 bg-white/10 rounded">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-sm font-medium">{granule.granuleName}</p>
+                    <p className="text-sm text-gray-300">
+                      {new Date(granule.acquisitionDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleGranuleSelect(granule)}
+                  >
+                    View Preview
+                  </Button>
+                </div>
+                {selectedGranule?.granuleName === granule.granuleName && previewImage && (
+                  <div className="mt-2">
+                    <img 
+                      src={previewImage} 
+                      alt="GeoTIFF Preview" 
+                      className="w-full h-48 object-cover rounded"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
