@@ -5,6 +5,7 @@ import { loadGeoTIFF, createImageFromGeoTIFF } from "@/utils/geotiffUtils";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card } from "./ui/card";
 
 interface DataPanelProps {
   selectedRegion: string | null;
@@ -42,6 +43,18 @@ const DataPanel = ({ selectedRegion, dateRange }: DataPanelProps) => {
       console.error('Error loading GeoTIFF preview:', error);
     }
   };
+
+  // Calculate coverage statistics
+  const coverageStats = granules ? {
+    totalGranules: granules.length,
+    averageGranulesPerDay: granules.length / ((dateRange.end.getTime() - dateRange.start.getTime()) / (1000 * 60 * 60 * 24)),
+    platforms: [...new Set(granules.map(g => g.platform))].length,
+    temporalCoverage: `${Math.round(((dateRange.end.getTime() - dateRange.start.getTime()) / (1000 * 60 * 60 * 24)))} days`,
+    spatialCoverage: selectedRegion ? 
+      `${Math.abs(Number(selectedRegion.split(',')[2]) - Number(selectedRegion.split(',')[0])) * 
+       Math.abs(Number(selectedRegion.split(',')[3]) - Number(selectedRegion.split(',')[1]))} sq degrees` : 
+      'N/A'
+  } : null;
 
   if (!selectedRegion) {
     return (
@@ -87,7 +100,31 @@ const DataPanel = ({ selectedRegion, dateRange }: DataPanelProps) => {
 
   return (
     <div className="p-6 rounded-lg bg-space-light/20 backdrop-blur-sm animate-fade-in">
-      <h2 className="text-xl font-semibold mb-4">Data for Selected Region</h2>
+      <h2 className="text-xl font-semibold mb-4">Coverage Analysis</h2>
+      
+      {coverageStats && (
+        <Card className="p-4 mb-4 bg-white/5">
+          <h3 className="text-lg font-semibold mb-2">Coverage Statistics</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-400">Total Granules</p>
+              <p className="text-lg font-medium">{coverageStats.totalGranules}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Avg. Granules/Day</p>
+              <p className="text-lg font-medium">{coverageStats.averageGranulesPerDay.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Temporal Coverage</p>
+              <p className="text-lg font-medium">{coverageStats.temporalCoverage}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Spatial Coverage</p>
+              <p className="text-lg font-medium">{coverageStats.spatialCoverage}</p>
+            </div>
+          </div>
+        </Card>
+      )}
       
       <div className="space-y-4">
         <div className="p-4 bg-white/5 rounded">
