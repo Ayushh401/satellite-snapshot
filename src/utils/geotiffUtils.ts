@@ -43,9 +43,15 @@ export const createImageFromGeoTIFF = async (tiff: GeoTIFF.GeoTIFF): Promise<HTM
   
   const imageData = ctx.createImageData(canvas.width, canvas.height);
   
-  // Assuming single band grayscale data
-  for (let i = 0; i < data[0].length; i++) {
-    const value = data[0][i];
+  // Check if data[0] is a TypedArray
+  const rasterData = data[0];
+  if (!ArrayBuffer.isView(rasterData)) {
+    throw new Error('Invalid raster data format');
+  }
+  
+  // Now TypeScript knows rasterData is a TypedArray
+  for (let i = 0; i < rasterData.length; i++) {
+    const value = rasterData[i];
     const index = i * 4;
     imageData.data[index] = value;     // R
     imageData.data[index + 1] = value; // G
