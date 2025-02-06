@@ -5,6 +5,15 @@ import DataPanel from "../components/DataPanel";
 
 const Index = () => {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  });
+
+  const handleRegionSelect = (region: string, startDate: Date, endDate: Date) => {
+    setSelectedRegion(region);
+    setDateRange({ start: startDate, end: endDate });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-space to-ocean text-white">
@@ -19,8 +28,8 @@ const Index = () => {
             <Map selectedRegion={selectedRegion} />
           </div>
           <div className="space-y-6">
-            <SearchPanel onRegionSelect={setSelectedRegion} />
-            <DataPanel selectedRegion={selectedRegion} />
+            <SearchPanel onRegionSelect={handleRegionSelect} />
+            <DataPanel selectedRegion={selectedRegion} dateRange={dateRange} />
           </div>
         </div>
       </div>

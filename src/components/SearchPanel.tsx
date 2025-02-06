@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 interface SearchPanelProps {
-  onRegionSelect: (region: string) => void;
+  onRegionSelect: (region: string, startDate: Date, endDate: Date) => void;
 }
 
 const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
@@ -12,6 +16,8 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
   const [minLat, setMinLat] = useState("");
   const [maxLon, setMaxLon] = useState("");
   const [maxLat, setMaxLat] = useState("");
+  const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState<Date>(new Date());
 
   const handleSearch = () => {
     if (!minLon || !minLat || !maxLon || !maxLat) {
@@ -20,7 +26,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
     }
 
     const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
-    onRegionSelect(bbox);
+    onRegionSelect(bbox, startDate, endDate);
   };
 
   return (
@@ -69,6 +75,48 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
             />
           </div>
         </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-300 mb-1 block">Start Date</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => date && setStartDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <label className="text-sm text-gray-300 mb-1 block">End Date</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => date && setEndDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
         <Button 
           onClick={handleSearch}
           className="w-full bg-ocean hover:bg-ocean-light transition-colors"
