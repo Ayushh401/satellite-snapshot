@@ -9,6 +9,7 @@ const Index = () => {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     end: new Date()
   });
+  const [overlayType, setOverlayType] = useState<"standard" | "heatmap" | "density">("standard");
 
   const handleRegionSelect = (region: string, startDate: Date, endDate: Date) => {
     setSelectedRegion(region);
@@ -25,7 +26,10 @@ const Index = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Map selectedRegion={selectedRegion} />
+            <Map 
+              selectedRegion={selectedRegion} 
+              overlayType={overlayType}
+            />
           </div>
           <div className="space-y-6">
             <SearchPanel onRegionSelect={handleRegionSelect} />
