@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
 
 interface MapProps {
   selectedRegion: string | null;
+  coverageData?: Array<[number, number, number]>; // lat, lng, intensity
+  overlayType: "standard" | "heatmap" | "density";
 }
 
-const Map = ({ selectedRegion }: MapProps) => {
+const Map = ({ selectedRegion, coverageData = [], overlayType }: MapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const boundaryRef = useRef<L.Rectangle | null>(null);
+  const heatLayerRef = useRef<any>(null);
   const [activeLayer, setActiveLayer] = useState<"street" | "satellite" | "terrain">("street");
 
   useEffect(() => {
@@ -17,7 +21,6 @@ const Map = ({ selectedRegion }: MapProps) => {
 
     mapRef.current = L.map(mapContainerRef.current).setView([0, 0], 2);
 
-    // Define different map layers
     const layers = {
       street: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -30,10 +33,8 @@ const Map = ({ selectedRegion }: MapProps) => {
       })
     };
 
-    // Set initial layer
     layers[activeLayer].addTo(mapRef.current);
 
-    // Add layer control
     const layerControl = L.control.layers({
       "Street": layers.street,
       "Satellite": layers.satellite,
@@ -45,6 +46,24 @@ const Map = ({ selectedRegion }: MapProps) => {
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || !coverageData.length) return;
+
+    if (heatLayerRef.current) {
+      mapRef.current.removeLayer(heatLayerRef.current);
+    }
+
+    if (overlayType === "heatmap") {
+      heatLayerRef.current = L.heatLayer(coverageData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 10,
+        max: 1.0,
+        gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+      }).addTo(mapRef.current);
+    }
+  }, [coverageData, overlayType]);
 
   useEffect(() => {
     if (selectedRegion && mapRef.current) {

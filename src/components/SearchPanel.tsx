@@ -6,9 +6,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SearchPanelProps {
-  onRegionSelect: (region: string, startDate: Date, endDate: Date) => void;
+  onRegionSelect: (region: string, startDate: Date, endDate: Date, filters: SearchFilters) => void;
+}
+
+interface SearchFilters {
+  platform: string;
+  dataQuality: string;
+  coverageType: string;
 }
 
 const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
@@ -18,6 +25,11 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
   const [maxLat, setMaxLat] = useState("");
   const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date>(new Date());
+  const [filters, setFilters] = useState<SearchFilters>({
+    platform: "all",
+    dataQuality: "all",
+    coverageType: "all"
+  });
 
   const handleSearch = () => {
     if (!minLon || !minLat || !maxLon || !maxLat) {
@@ -26,7 +38,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
     }
 
     const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
-    onRegionSelect(bbox, startDate, endDate);
+    onRegionSelect(bbox, startDate, endDate, filters);
   };
 
   return (
@@ -75,7 +87,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
             />
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-gray-300 mb-1 block">Start Date</label>
@@ -115,6 +127,53 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
               </PopoverContent>
             </Popover>
           </div>
+        </div>
+
+        <div className="space-y-3">
+          <Select
+            value={filters.platform}
+            onValueChange={(value) => setFilters(prev => ({ ...prev, platform: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Platforms</SelectItem>
+              <SelectItem value="sentinel1">Sentinel-1</SelectItem>
+              <SelectItem value="sentinel2">Sentinel-2</SelectItem>
+              <SelectItem value="landsat">Landsat</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.dataQuality}
+            onValueChange={(value) => setFilters(prev => ({ ...prev, dataQuality: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Data Quality" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Quality Levels</SelectItem>
+              <SelectItem value="high">High Quality</SelectItem>
+              <SelectItem value="medium">Medium Quality</SelectItem>
+              <SelectItem value="low">Low Quality</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.coverageType}
+            onValueChange={(value) => setFilters(prev => ({ ...prev, coverageType: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Coverage Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Coverage Types</SelectItem>
+              <SelectItem value="full">Full Coverage</SelectItem>
+              <SelectItem value="partial">Partial Coverage</SelectItem>
+              <SelectItem value="minimal">Minimal Coverage</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Button 
