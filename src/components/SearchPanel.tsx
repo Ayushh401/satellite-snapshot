@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Ticket, Image } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SearchPanelProps {
@@ -135,6 +135,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
             onValueChange={(value) => setFilters(prev => ({ ...prev, platform: value }))}
           >
             <SelectTrigger>
+              <Ticket className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Select Platform" />
             </SelectTrigger>
             <SelectContent>
@@ -150,6 +151,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
             onValueChange={(value) => setFilters(prev => ({ ...prev, dataQuality: value }))}
           >
             <SelectTrigger>
+              <Image className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Data Quality" />
             </SelectTrigger>
             <SelectContent>
@@ -165,6 +167,7 @@ const SearchPanel = ({ onRegionSelect }: SearchPanelProps) => {
             onValueChange={(value) => setFilters(prev => ({ ...prev, coverageType: value }))}
           >
             <SelectTrigger>
+              <Image className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Coverage Type" />
             </SelectTrigger>
             <SelectContent>
